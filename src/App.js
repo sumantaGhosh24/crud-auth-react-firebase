@@ -3,9 +3,12 @@ import {BrowserRouter, Routes, Route, Navigate} from "react-router-dom";
 
 import Home from "./pages/home/Home";
 import Login from "./pages/login/Login";
+import Register from "./pages/register/Register";
 import List from "./pages/list/List";
 import Single from "./pages/single/Single";
 import New from "./pages/new/New";
+import NotFound from "./pages/not-found/NotFound";
+
 import {productInputs, userInputs} from "./formSource";
 import "./style/dark.scss";
 import {DarkModeContext} from "./context/darkModeContext";
@@ -16,8 +19,15 @@ function App() {
 
   const {currentUser} = useContext(AuthContext);
 
+  console.log("dark mode context", darkMode);
+  console.log("user context", currentUser);
+
   const RequireAuth = ({children}) => {
     return currentUser ? children : <Navigate to="/login" />;
+  };
+
+  const GuestAuth = ({children}) => {
+    return currentUser ? <Navigate to="/" /> : children;
   };
 
   return (
@@ -25,7 +35,22 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/">
-            <Route path="login" element={<Login />} />
+            <Route
+              path="login"
+              element={
+                <GuestAuth>
+                  <Login />
+                </GuestAuth>
+              }
+            />
+            <Route
+              path="register"
+              element={
+                <GuestAuth>
+                  <Register />
+                </GuestAuth>
+              }
+            />
             <Route
               index
               element={
@@ -87,6 +112,7 @@ function App() {
               />
             </Route>
           </Route>
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
     </div>

@@ -7,11 +7,13 @@ import {auth} from "../../firebase";
 import {AuthContext} from "../../context/AuthContext";
 
 const Login = () => {
-  const [error, setError] = useState(false);
+  const [error, setError] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const navitage = useNavigate();
+  const isEmpty = !email || !password;
+
+  const navigate = useNavigate();
 
   const {dispatch} = useContext(AuthContext);
 
@@ -20,31 +22,39 @@ const Login = () => {
 
     signInWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
-        // Signed in
+        console.log("userCredential", userCredential);
         const user = userCredential.user;
         dispatch({type: "LOGIN", payload: user});
-        navitage("/");
+        navigate("/");
       })
       .catch((error) => {
-        setError(true);
+        setError(error.message);
       });
   };
 
   return (
     <div className="login">
-      <form onSubmit={handleLogin}>
+      <form className="login__form" onSubmit={handleLogin}>
+        <h2 className="login__heading">Login to use our application</h2>
         <input
           type="email"
-          placeholder="email"
+          placeholder="enter your email address"
+          className="login__email"
+          value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
         <input
           type="password"
-          placeholder="password"
+          placeholder="enter your password"
+          className="login__password"
+          value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
-        <button type="submit">Login</button>
-        {error && <span>Wrong email or password!</span>}
+        <button type="submit" className="login__btn" disabled={isEmpty}>
+          Login
+        </button>
+        <span className="login__error"></span>
+        {error && <span className="login__error">{error}</span>}
       </form>
     </div>
   );
