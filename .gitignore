@@ -6,8 +6,6 @@
 .pnp.js
 
 config.js
-formSource.js
-datatablesource.js
 
 # testing
 /coverage

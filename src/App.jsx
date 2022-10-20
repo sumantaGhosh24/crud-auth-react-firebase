@@ -1,25 +1,30 @@
 import {useContext} from "react";
 import {BrowserRouter, Routes, Route, Navigate} from "react-router-dom";
 
-import Home from "./pages/home/Home";
+import "./App.css";
 import Login from "./pages/login/Login";
 import Register from "./pages/register/Register";
-import List from "./pages/list/List";
-import Single from "./pages/single/Single";
-import New from "./pages/new/New";
+import Home from "./pages/home/Home";
+import Profile from "./pages/profile/Profile";
 import NotFound from "./pages/not-found/NotFound";
+import CustomerList from "./pages/list/CustomerList";
+import ProductList from "./pages/list/ProductList";
+import OrderList from "./pages/list/OrderList";
+import CustomerSingle from "./pages/single/CustomerSingle";
+import ProductSingle from "./pages/single/ProductSingle";
+import OrderSingle from "./pages/single/OrderSingle";
+import CustomerNew from "./pages/new/CustomerNew";
+import ProductNew from "./pages/new/ProductNew";
+import OrderNew from "./pages/new/OrderNew";
+import CustomerUpdate from "./pages/update/CustomerUpdate";
+import ProductUpdate from "./pages/update/ProductUpdate";
 
-import {productInputs, userInputs} from "./formSource";
-import "./style/dark.scss";
-import {DarkModeContext} from "./context/darkModeContext";
+import {customerInputs, productInputs} from "./formSource";
 import {AuthContext} from "./context/AuthContext";
 
 function App() {
-  const {darkMode} = useContext(DarkModeContext);
-
   const {currentUser} = useContext(AuthContext);
 
-  console.log("dark mode context", darkMode);
   console.log("user context", currentUser);
 
   const RequireAuth = ({children}) => {
@@ -31,9 +36,64 @@ function App() {
   };
 
   return (
-    <div className={darkMode ? "app dark" : "app"}>
+    <div>
       <BrowserRouter>
         <Routes>
+          <Route path="/">
+            <Route path="login" element={<Login />} />
+            <Route path="register" element={<Register />} />
+            <Route index element={<Home />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="customers">
+              <Route index element={<CustomerList />} />
+              <Route path=":customerId" element={<CustomerSingle />} />
+              <Route
+                path="new"
+                element={
+                  <CustomerNew
+                    inputs={customerInputs}
+                    title="Add New Customer"
+                  />
+                }
+              />
+              <Route
+                path="update/:customerId"
+                element={
+                  <CustomerUpdate
+                    inputs={customerInputs}
+                    title="Update Customer"
+                  />
+                }
+              />
+            </Route>
+            <Route path="products">
+              <Route index element={<ProductList />} />
+              <Route path=":productId" element={<ProductSingle />} />
+              <Route
+                path="new"
+                element={
+                  <ProductNew inputs={productInputs} title="Add New Product" />
+                }
+              />
+              <Route
+                path="update/:productId"
+                element={
+                  <ProductUpdate
+                    inputs={productInputs}
+                    title="Update Product"
+                  />
+                }
+              />
+            </Route>
+            <Route path="orders">
+              <Route index element={<OrderList />} />
+              <Route path=":orderId" element={<OrderSingle />} />
+              <Route path="new" element={<OrderNew title="Add New Order" />} />
+            </Route>
+          </Route>
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+        {/* <Routes>
           <Route path="/">
             <Route
               path="login"
@@ -113,7 +173,7 @@ function App() {
             </Route>
           </Route>
           <Route path="*" element={<NotFound />} />
-        </Routes>
+        </Routes> */}
       </BrowserRouter>
     </div>
   );

@@ -1,9 +1,15 @@
-import "./home.scss";
+import {useEffect} from "react";
+
+import Navbar from "../../components/navbar/Navbar";
 
 const Home = () => {
+  useEffect(() => {
+    document.title = "TODO - Home";
+  }, []);
+
   return (
     <div className="home">
-      <p>this is home page</p>
+      <Navbar />
     </div>
   );
 };

@@ -3,42 +3,82 @@ export const userInputs = [
     id: "username",
     label: "Username",
     type: "text",
-    placeholder: "john_doe",
+    placeholder: "enter your username",
   },
   {
-    id: "displayName",
+    id: "name",
     label: "Name and surname",
     type: "text",
-    placeholder: "John Doe",
+    placeholder: "enter your name",
   },
   {
     id: "email",
     label: "Email",
     type: "mail",
-    placeholder: "john_doe@gmail.com",
+    placeholder: "enter your email address",
   },
   {
     id: "phone",
     label: "Phone",
     type: "text",
-    placeholder: "+1 234 567 89",
+    placeholder: "enter your phone number",
   },
   {
     id: "password",
     label: "Password",
     type: "password",
+    placeholder: "enter your password",
   },
   {
     id: "address",
     label: "Address",
     type: "text",
-    placeholder: "Elton St. 216 NewYork",
+    placeholder: "enter your address",
   },
   {
     id: "country",
     label: "Country",
     type: "text",
-    placeholder: "USA",
+    placeholder: "enter your country name",
+  },
+];
+
+export const customerInputs = [
+  {
+    id: "username",
+    label: "Username",
+    type: "text",
+    placeholder: "enter your username",
+  },
+  {
+    id: "name",
+    label: "Name and surname",
+    type: "text",
+    placeholder: "enter your name",
+  },
+  {
+    id: "email",
+    label: "Email",
+    type: "mail",
+    placeholder: "enter your email address",
+  },
+  {
+    id: "phone",
+    label: "Phone",
+    type: "text",
+    placeholder: "enter your phone number",
+  },
+  {
+    id: "address",
+    label: "Address",
+    type: "text",
+    placeholder: "enter your address",
+  },
+  {
+    id: "country",
+    label: "Country",
+    type: "text",
+    placeholder: "enter your country name",
   },
 ];
 
