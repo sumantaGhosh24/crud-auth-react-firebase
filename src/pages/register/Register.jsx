@@ -91,9 +91,10 @@ const Register = () => {
         data.email,
         data.password
       );
-      console.log(res);
+      const obj = {...data};
+      delete obj.password;
       await setDoc(doc(db, "users", res.user.uid), {
-        ...data,
+        ...obj,
         timestamp: serverTimestamp(),
       });
       navigate("/login");
@@ -173,7 +174,7 @@ const Register = () => {
           ))}
           <Button
             type="submit"
-            disabled={isEmpty}
+            disabled={per !== null && per < 100}
             variant="contained"
             color="primary"
             size="large"

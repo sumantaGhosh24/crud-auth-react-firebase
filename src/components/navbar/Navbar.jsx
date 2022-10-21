@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useContext, useEffect, useState} from "react";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
@@ -13,15 +13,29 @@ import MenuItem from "@mui/material/MenuItem";
 import {Link} from "react-router-dom";
 import {Button} from "@mui/material";
 import {PlaylistAddCheck} from "@mui/icons-material";
+import {doc, onSnapshot} from "firebase/firestore";
 
-const pages = ["Home", "Customer", "Product", "Order"];
-const linkTo = ["/", "/customers", "/products", "/orders"];
-const settings = ["Profile", "Logout"];
-const settingsTo = ["/profile", "/login"];
+import {AuthContext} from "../../context/AuthContext";
+import {db} from "../../firebase";
+
+const pages = ["Home", "Customer", "Product"];
+const linkTo = ["/", "/customers", "/products"];
 
 function Navbar() {
   const [anchorElNav, setAnchorElNav] = useState(null);
   const [anchorElUser, setAnchorElUser] = useState(null);
+  const [user, setUser] = useState({});
+
+  const {currentUser, dispatch} = useContext(AuthContext);
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(doc(db, "users", currentUser.uid), (doc) => {
+      setUser(doc.data());
+    });
+    return () => {
+      unsubscribe();
+    };
+  }, [currentUser.uid]);
 
   const handleOpenNavMenu = (event) => {
     setAnchorElNav(event.currentTarget);
@@ -138,7 +152,7 @@ function Navbar() {
           <Box sx={{flexGrow: 0}}>
             <Tooltip title="Open settings">
               <IconButton onClick={handleOpenUserMenu} sx={{p: 0}}>
-                <Avatar alt="Remy Sharp" src="/static/images/avatar/2.jpg" />
+                <Avatar alt={user?.name} src={user?.img} />
               </IconButton>
             </Tooltip>
             <Menu
@@ -157,13 +171,33 @@ function Navbar() {
               open={Boolean(anchorElUser)}
               onClose={handleCloseUserMenu}
             >
-              {settings.map((setting, i) => (
-                <MenuItem key={setting} onClick={handleCloseUserMenu}>
-                  <Typography textAlign="center">
-                    <Link to={settingsTo[i]}>{setting}</Link>
-                  </Typography>
-                </MenuItem>
-              ))}
+              <MenuItem divider onClick={handleCloseUserMenu}>
+                <Typography
+                  textAlign="center"
+                  sx={{
+                    textTransform: "capitalize",
+                    fontWeight: "bold",
+                    fontSize: "18px",
+                  }}
+                >
+                  {user?.name}
+                </Typography>
+              </MenuItem>
+              <MenuItem divider onClick={() => dispatch({type: "LOGOUT"})}>
+                <Typography textAlign="center">Logout</Typography>
+              </MenuItem>
+              <MenuItem onClick={handleCloseUserMenu}>
+                <Typography
+                  textAlign="center"
+                  sx={{
+                    textTransform: "uppercase",
+                    fontWeight: "bold",
+                    fontSize: "14px",
+                  }}
+                >
+                  From: {user.country}
+                </Typography>
+              </MenuItem>
             </Menu>
           </Box>
         </Toolbar>

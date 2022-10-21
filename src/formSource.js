@@ -59,7 +59,7 @@ export const customerInputs = [
   {
     id: "email",
     label: "Email",
-    type: "mail",
+    type: "email",
     placeholder: "enter your email address",
   },
   {
