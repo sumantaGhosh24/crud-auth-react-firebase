@@ -70,7 +70,7 @@ const OrderNew = ({inputs}) => {
 
   const handleInput = (e) => {
     const {id, value} = e.target;
-    setImmediate({...data, [id]: value});
+    setData({...data, [id]: value});
   };
 
   const handleAddProduct = async (e) => {
