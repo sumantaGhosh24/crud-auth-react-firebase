@@ -27,7 +27,7 @@ const Register = () => {
 
   const isEmpty =
     !data.username ||
-    !data.displayName ||
+    !data.name ||
     !data.email ||
     !data.phone ||
     !data.password ||
@@ -42,11 +42,8 @@ const Register = () => {
     const uploadFile = () => {
       const name = new Date().getTime() + file.name;
       console.log("file name", name);
-
       const storageRef = ref(storage, name);
-      console.log("storage ref", storageRef);
       const uploadTask = uploadBytesResumable(storageRef, file);
-
       uploadTask.on(
         "state_changed",
         (snapshot) => {
@@ -174,7 +171,7 @@ const Register = () => {
           ))}
           <Button
             type="submit"
-            disabled={per !== null && per < 100}
+            disabled={per < 100 || isEmpty}
             variant="contained"
             color="primary"
             size="large"

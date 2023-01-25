@@ -1,56 +1,58 @@
-import React, {useContext, useEffect, useState} from "react";
+import {useContext, useEffect, useState} from "react";
+import {collection, deleteDoc, doc, onSnapshot} from "firebase/firestore";
 import {
   Avatar,
   Button,
-  Container,
-  Typography,
   Paper,
-  TableRow,
-  TableHead,
-  TableContainer,
-  TableCell,
-  TableBody,
   Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Typography,
+  Container,
 } from "@mui/material";
-import {Add, Delete, Edit, Visibility} from "@mui/icons-material";
+import {Add, Delete} from "@mui/icons-material";
 import {Link} from "react-router-dom";
-import {collection, deleteDoc, doc, onSnapshot} from "firebase/firestore";
 
-import Navbar from "../../components/navbar/Navbar";
 import {AuthContext} from "../../context/AuthContext";
 import {db} from "../../firebase";
+import Navbar from "../../components/navbar/Navbar";
 
-export default function CustomerList() {
+const OrderList = () => {
   const [rows, setRows] = useState([]);
 
   const {currentUser} = useContext(AuthContext);
 
   useEffect(() => {
-    document.title = "TODO | Customer List";
+    document.title = "TODO - Order List";
   }, []);
 
   useEffect(() => {
     const unsubscribe = onSnapshot(
-      collection(db, "users", currentUser.uid, "customers"),
+      collection(db, "users", currentUser.uid, "orders"),
       (snapshot) => {
         let list = [];
-        snapshot.docs.forEach((doc) => {
-          list.push({id: doc.id, ...doc.data()});
-        });
-        setRows(list);
-      },
-      (error) => {
-        console.log(error);
+        snapshot.docs.forEach(
+          (doc) => {
+            list.push({id: doc.id, ...doc.data()});
+            setRows(list);
+          },
+          (error) => {
+            console.log(error);
+          }
+        );
+        return () => {
+          unsubscribe();
+        };
       }
     );
-    return () => {
-      unsubscribe();
-    };
   }, [currentUser.uid]);
 
   const handleDelete = async (id) => {
     try {
-      await deleteDoc(doc(db, "users", currentUser.uid, "customers", id));
+      await deleteDoc(doc(db, "users", currentUser.uid, "orders", id));
     } catch (error) {
       console.log(error);
     }
@@ -61,11 +63,11 @@ export default function CustomerList() {
       <Navbar />
       <Container maxWidth="xl">
         <Typography variant="h4" textAlign="center" sx={{marginTop: 5}}>
-          Customers List
+          Orders List
         </Typography>
         <Button variant="contained" color="primary" startIcon={<Add />}>
-          <Link to="/customers/new" style={{color: "#fff"}}>
-            Add New Customer
+          <Link to="/orders/new" style={{color: "#fff"}}>
+            Add New Order
           </Link>
         </Button>
         <TableContainer component={Paper} sx={{marginTop: "50px"}}>
@@ -75,17 +77,18 @@ export default function CustomerList() {
               textAlign="center"
               sx={{marginTop: 5, marginBottom: 5}}
             >
-              You don't have any customer yet!
+              You don't have any order yet!
             </Typography>
           ) : (
-            <Table sx={{minWidth: 650}} aria-label="customers table">
+            <Table sx={{minWidth: 650}} aria-label="orders table">
               <TableHead>
                 <TableRow>
-                  <TableCell>Name</TableCell>
+                  <TableCell>Order Id</TableCell>
+                  <TableCell align="right">Name</TableCell>
                   <TableCell align="right">Username</TableCell>
-                  <TableCell align="right">Email Address</TableCell>
-                  <TableCell align="right">Phone Number</TableCell>
                   <TableCell align="right">Image</TableCell>
+                  <TableCell align="right">Email</TableCell>
+                  <TableCell align="right">Phone</TableCell>
                   <TableCell align="right">Address</TableCell>
                   <TableCell align="right">Country</TableCell>
                   <TableCell align="right">Timestamp</TableCell>
@@ -99,34 +102,21 @@ export default function CustomerList() {
                     sx={{"&:last-child td, &:last-child th": {border: 0}}}
                   >
                     <TableCell component="th" scope="row">
-                      {row.name}
+                      {row.id}
                     </TableCell>
-                    <TableCell align="right">{row.username}</TableCell>
-                    <TableCell align="right">{row.email}</TableCell>
-                    <TableCell align="right">{row.phone}</TableCell>
+                    <TableCell align="right">{row.user.name}</TableCell>
+                    <TableCell align="right">{row.user.username}</TableCell>
                     <TableCell align="right">
-                      <Avatar src={row.img} alt={row.name} />
+                      <Avatar src={row.user.img} alt={row.user.name} />
                     </TableCell>
-                    <TableCell align="right">{row.address}</TableCell>
-                    <TableCell align="right">{row.country}</TableCell>
+                    <TableCell align="right">{row.user.email}</TableCell>
+                    <TableCell align="right">{row.user.phone}</TableCell>
+                    <TableCell align="right">{row.user.address}</TableCell>
+                    <TableCell align="right">{row.user.country}</TableCell>
                     <TableCell align="right">
-                      {row.timestamp?.toDate().toDateString()}
+                      {row.user.timestamp?.toDate().toDateString()}
                     </TableCell>
                     <TableCell align="right">
-                      <Button variant="contained" color="secondary">
-                        <Link to={`/customers/${row.id}`}>
-                          <Visibility />
-                        </Link>
-                      </Button>
-                      <Button
-                        variant="contained"
-                        color="success"
-                        sx={{marginLeft: 2, marginRight: 2}}
-                      >
-                        <Link to={`/customers/update/${row.id}`}>
-                          <Edit />
-                        </Link>
-                      </Button>
                       <Button
                         variant="contained"
                         color="error"
@@ -144,4 +134,6 @@ export default function CustomerList() {
       </Container>
     </>
   );
-}
+};
+
+export default OrderList;

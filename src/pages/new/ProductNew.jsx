@@ -18,7 +18,7 @@ import {AuthContext} from "../../context/AuthContext";
 import {db, storage} from "../../firebase";
 import Navbar from "../../components/navbar/Navbar";
 
-const OrderNew = ({inputs}) => {
+const ProductNew = ({inputs}) => {
   const [file, setFile] = useState("");
   const [data, setData] = useState({});
   const [error, setError] = useState("");
@@ -28,7 +28,7 @@ const OrderNew = ({inputs}) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    document.title = "TODO - New Order";
+    document.title = "TODO - New Product";
   }, []);
 
   useEffect(() => {
@@ -36,7 +36,6 @@ const OrderNew = ({inputs}) => {
       const name = new Date().getTime() + file.name;
       const storageRef = ref(storage, name);
       const uploadTask = uploadBytesResumable(storageRef, file);
-
       uploadTask.on(
         "state_changed",
         (snapshot) => {
@@ -72,6 +71,13 @@ const OrderNew = ({inputs}) => {
     const {id, value} = e.target;
     setData({...data, [id]: value});
   };
+
+  const isMatch =
+    !data.title ||
+    !data.description ||
+    !data.category ||
+    !data.price ||
+    !data.stock;
 
   const handleAddProduct = async (e) => {
     e.preventDefault();
@@ -172,7 +178,7 @@ const OrderNew = ({inputs}) => {
             ))}
             <Button
               type="submit"
-              disabled={per !== null && per < 100}
+              disabled={per < 100 || isMatch}
               variant="contained"
               color="primary"
               size="large"
@@ -200,4 +206,4 @@ const OrderNew = ({inputs}) => {
   );
 };
 
-export default OrderNew;
+export default ProductNew;

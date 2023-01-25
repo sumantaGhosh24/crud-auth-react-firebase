@@ -1,25 +1,27 @@
 import React, {useContext, useEffect, useState} from "react";
-import AppBar from "@mui/material/AppBar";
-import Box from "@mui/material/Box";
-import Toolbar from "@mui/material/Toolbar";
-import IconButton from "@mui/material/IconButton";
-import Typography from "@mui/material/Typography";
-import Menu from "@mui/material/Menu";
-import MenuIcon from "@mui/icons-material/Menu";
-import Container from "@mui/material/Container";
-import Avatar from "@mui/material/Avatar";
-import Tooltip from "@mui/material/Tooltip";
-import MenuItem from "@mui/material/MenuItem";
 import {Link} from "react-router-dom";
-import {Button} from "@mui/material";
+import {
+  Button,
+  AppBar,
+  Box,
+  Toolbar,
+  IconButton,
+  Typography,
+  Menu,
+  Container,
+  Avatar,
+  Tooltip,
+  MenuItem,
+} from "@mui/material";
 import {PlaylistAddCheck} from "@mui/icons-material";
+import MenuIcon from "@mui/icons-material/Menu";
 import {doc, onSnapshot} from "firebase/firestore";
 
 import {AuthContext} from "../../context/AuthContext";
 import {db} from "../../firebase";
 
-const pages = ["Home", "Customer", "Product"];
-const linkTo = ["/", "/customers", "/products"];
+const pages = ["Home", "Customer", "Product", "Order", "Donate"];
+const linkTo = ["/", "/customers", "/products", "/orders", "/donate"];
 
 function Navbar() {
   const [anchorElNav, setAnchorElNav] = useState(null);

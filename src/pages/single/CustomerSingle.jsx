@@ -42,7 +42,6 @@ const CustomerSingle = () => {
     return () => {
       getCustomer();
     };
-    // eslint-disable-next-line
   }, [currentUser.uid, customerId]);
 
   const handleDelete = async (id) => {
@@ -117,6 +116,13 @@ const CustomerSingle = () => {
                 gutterBottom
               >
                 Address : {customer.address}
+              </Typography>
+              <Typography
+                variant="subtitle1"
+                color="text.secondary"
+                gutterBottom
+              >
+                Timestamp : {customer.timestamp?.toDate().toDateString()}
               </Typography>
             </CardContent>
           </CardActionArea>

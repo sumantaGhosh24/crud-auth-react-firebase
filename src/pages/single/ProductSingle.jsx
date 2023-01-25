@@ -41,7 +41,6 @@ const ProductSingle = () => {
     return () => {
       getCustomer();
     };
-    // eslint-disable-next-line
   }, [currentUser.uid, productId]);
 
   const handleDelete = async (id) => {
@@ -109,6 +108,13 @@ const ProductSingle = () => {
                 color="text.secondary"
               >
                 Stock : {product.stock}{" "}
+              </Typography>
+              <Typography
+                gutterBottom
+                variant="subtitle1"
+                color="text.secondary"
+              >
+                Timestamp : {product.timestamp?.toDate().toDateString()}{" "}
               </Typography>
             </CardContent>
           </CardActionArea>

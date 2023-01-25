@@ -1,6 +1,5 @@
 import {useContext, useEffect, useState} from "react";
 import {collection, deleteDoc, doc, onSnapshot} from "firebase/firestore";
-import {Container} from "@mui/system";
 import {
   Avatar,
   Button,
@@ -12,6 +11,7 @@ import {
   TableHead,
   TableRow,
   Typography,
+  Container,
 } from "@mui/material";
 import {Add, Delete, Edit, Visibility} from "@mui/icons-material";
 import {Link} from "react-router-dom";
@@ -89,6 +89,7 @@ const ProductList = () => {
                   <TableCell align="right">Image</TableCell>
                   <TableCell align="right">Price</TableCell>
                   <TableCell align="right">Stock</TableCell>
+                  <TableCell align="right">Timestamp</TableCell>
                   <TableCell align="right">Actions</TableCell>
                 </TableRow>
               </TableHead>
@@ -108,6 +109,9 @@ const ProductList = () => {
                     </TableCell>
                     <TableCell align="right">{row.price}</TableCell>
                     <TableCell align="right">{row.stock}</TableCell>
+                    <TableCell align="right">
+                      {row.timestamp?.toDate().toDateString()}
+                    </TableCell>
                     <TableCell align="right">
                       <Button variant="contained" color="secondary">
                         <Link to={`/products/${row.id}`}>

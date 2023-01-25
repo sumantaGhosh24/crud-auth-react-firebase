@@ -10,6 +10,7 @@ import {db} from "../../firebase";
 const Home = () => {
   const [customer, setCustomer] = useState(0);
   const [product, setProduct] = useState(0);
+  const [order, setOrder] = useState(0);
 
   const {currentUser} = useContext(AuthContext);
 
@@ -59,6 +60,27 @@ const Home = () => {
     };
   }, [currentUser.uid]);
 
+  useEffect(() => {
+    const unsubscribe = onSnapshot(
+      collection(db, "users", currentUser.uid, "orders"),
+      (snapshot) => {
+        let list = [];
+        snapshot.docs.forEach(
+          (doc) => {
+            list.push({id: doc.id});
+            setOrder(list.length);
+          },
+          (error) => {
+            console.log(error);
+          }
+        );
+      }
+    );
+    return () => {
+      unsubscribe();
+    };
+  }, [currentUser.uid]);
+
   return (
     <div className="home">
       <Navbar />
@@ -83,6 +105,12 @@ const Home = () => {
             subHeading="total number of products available"
             value={product}
             linkTo="/products"
+          />
+          <PreviewCard
+            heading="Total Orders"
+            subHeading="total number of orders available"
+            value={order}
+            linkTo="/orders"
           />
         </Box>
       </Container>

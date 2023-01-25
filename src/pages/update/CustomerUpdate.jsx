@@ -40,7 +40,6 @@ const CustomerUpdate = () => {
     return () => {
       unsubscribe();
     };
-    // eslint-disable-next-line
   }, [currentUser.uid, customerId]);
 
   const handleInput = (e) => {

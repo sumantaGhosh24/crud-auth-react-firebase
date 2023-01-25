@@ -35,10 +35,8 @@ const CustomerNew = ({inputs}) => {
   useEffect(() => {
     const uploadFile = () => {
       const name = new Date().getTime() + file.name;
-
       const storageRef = ref(storage, name);
       const uploadTask = uploadBytesResumable(storageRef, file);
-
       uploadTask.on(
         "state_changed",
         (snapshot) => {
@@ -74,6 +72,14 @@ const CustomerNew = ({inputs}) => {
     const {id, value} = e.target;
     setData({...data, [id]: value});
   };
+
+  const isMatch =
+    !data.username ||
+    !data.name ||
+    !data.email ||
+    !data.phone ||
+    !data.address ||
+    !data.country;
 
   const handleAddCustomer = async (e) => {
     e.preventDefault();
@@ -174,7 +180,7 @@ const CustomerNew = ({inputs}) => {
             ))}
             <Button
               type="submit"
-              disabled={per !== null && per < 100}
+              disabled={per < 100 || isMatch}
               variant="contained"
               color="primary"
               size="large"

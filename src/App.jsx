@@ -8,13 +8,15 @@ import Home from "./pages/home/Home";
 import NotFound from "./pages/not-found/NotFound";
 import CustomerList from "./pages/list/CustomerList";
 import ProductList from "./pages/list/ProductList";
+import OrderList from "./pages/list/OrderList";
 import CustomerSingle from "./pages/single/CustomerSingle";
 import ProductSingle from "./pages/single/ProductSingle";
 import CustomerNew from "./pages/new/CustomerNew";
 import ProductNew from "./pages/new/ProductNew";
+import OrderNew from "./pages/new/OrderNew";
 import CustomerUpdate from "./pages/update/CustomerUpdate";
 import ProductUpdate from "./pages/update/ProductUpdate";
-
+import Donate from "./pages/donate/Donate";
 import {customerInputs, productInputs} from "./formSource";
 import {AuthContext} from "./context/AuthContext";
 
@@ -126,6 +128,25 @@ function App() {
                 }
               />
             </Route>
+            <Route path="orders">
+              <Route
+                index
+                element={
+                  <RequireAuth>
+                    <OrderList />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="new"
+                element={
+                  <RequireAuth>
+                    <OrderNew />
+                  </RequireAuth>
+                }
+              />
+            </Route>
+            <Route path="/donate" element={<Donate />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
