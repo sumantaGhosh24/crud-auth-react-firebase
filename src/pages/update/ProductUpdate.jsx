@@ -1,4 +1,4 @@
-import {useContext, useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import {ArrowBack} from "@mui/icons-material";
 import {
   Avatar,
@@ -11,25 +11,25 @@ import {
 import {doc, getDoc, updateDoc} from "firebase/firestore";
 import {Link, useNavigate, useParams} from "react-router-dom";
 
-import Navbar from "../../components/navbar/Navbar";
-import {AuthContext} from "../../context/AuthContext";
-import {db} from "../../firebase";
+import {Navbar} from "../../components";
+import {db} from "../../firebase/firebase";
+import {useFirebase} from "../../firebase/AuthContext";
 
 const ProductUpdate = () => {
-  const [product, setProduct] = useState({});
-  const [error, setError] = useState("");
-
-  const navigate = useNavigate();
-  const {currentUser} = useContext(AuthContext);
-  const {productId} = useParams();
-
   useEffect(() => {
     document.title = "TODO - Update Product";
   }, []);
 
+  const [product, setProduct] = useState({});
+  const [error, setError] = useState("");
+
+  const navigate = useNavigate();
+  const {productId} = useParams();
+  const firebase = useFirebase();
+
   useEffect(() => {
     const unsubscribe = async () => {
-      const docRef = doc(db, "users", currentUser.uid, "products", productId);
+      const docRef = doc(db, "users", firebase.authUser, "products", productId);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         setProduct({id: docSnap.id, ...docSnap.data()});
@@ -40,7 +40,8 @@ const ProductUpdate = () => {
     return () => {
       unsubscribe();
     };
-  }, [currentUser.uid, productId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [firebase.authUser, productId]);
 
   const handleInput = (e) => {
     const {id, value} = e.target;
@@ -51,7 +52,7 @@ const ProductUpdate = () => {
     e.preventDefault();
     try {
       await updateDoc(
-        doc(db, "users", currentUser.uid, "products", productId),
+        doc(db, "users", firebase.authUser, "products", productId),
         {...product},
         {merge: true}
       );

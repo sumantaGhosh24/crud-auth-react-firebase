@@ -1,34 +1,35 @@
-import {useContext} from "react";
 import {BrowserRouter, Routes, Route, Navigate} from "react-router-dom";
 
 import "./App.css";
-import Login from "./pages/login/Login";
-import Register from "./pages/register/Register";
-import Home from "./pages/home/Home";
-import NotFound from "./pages/not-found/NotFound";
-import CustomerList from "./pages/list/CustomerList";
-import ProductList from "./pages/list/ProductList";
-import OrderList from "./pages/list/OrderList";
-import CustomerSingle from "./pages/single/CustomerSingle";
-import ProductSingle from "./pages/single/ProductSingle";
-import CustomerNew from "./pages/new/CustomerNew";
-import ProductNew from "./pages/new/ProductNew";
-import OrderNew from "./pages/new/OrderNew";
-import CustomerUpdate from "./pages/update/CustomerUpdate";
-import ProductUpdate from "./pages/update/ProductUpdate";
-import Donate from "./pages/donate/Donate";
-import {customerInputs, productInputs} from "./formSource";
-import {AuthContext} from "./context/AuthContext";
+import {useFirebase} from "./firebase/AuthContext";
+import {
+  CustomerList,
+  CustomerNew,
+  CustomerSingle,
+  CustomerUpdate,
+  Donate,
+  Home,
+  Login,
+  NotFound,
+  OrderList,
+  OrderNew,
+  ProductList,
+  ProductNew,
+  ProductSingle,
+  ProductUpdate,
+  Register,
+} from "./pages";
+import {customerInputs, productInputs} from "./data/formSource";
 
 function App() {
-  const {currentUser} = useContext(AuthContext);
+  const firebase = useFirebase();
 
   const RequireAuth = ({children}) => {
-    return currentUser ? children : <Navigate to="/login" />;
+    return firebase.authUser ? children : <Navigate to="/login" />;
   };
 
   const GuestAuth = ({children}) => {
-    return currentUser ? <Navigate to="/" /> : children;
+    return firebase.authUser ? <Navigate to="/" /> : children;
   };
 
   return (

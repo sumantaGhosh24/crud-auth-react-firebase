@@ -1,4 +1,4 @@
-import {useContext, useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import {collection, deleteDoc, doc, onSnapshot} from "firebase/firestore";
 import {
   Avatar,
@@ -16,22 +16,22 @@ import {
 import {Add, Delete} from "@mui/icons-material";
 import {Link} from "react-router-dom";
 
-import {AuthContext} from "../../context/AuthContext";
-import {db} from "../../firebase";
-import Navbar from "../../components/navbar/Navbar";
+import {db} from "../../firebase/firebase";
+import {Navbar} from "../../components";
+import {useFirebase} from "../../firebase/AuthContext";
 
 const OrderList = () => {
-  const [rows, setRows] = useState([]);
-
-  const {currentUser} = useContext(AuthContext);
-
   useEffect(() => {
     document.title = "TODO - Order List";
   }, []);
 
+  const [rows, setRows] = useState([]);
+
+  const firebase = useFirebase();
+
   useEffect(() => {
     const unsubscribe = onSnapshot(
-      collection(db, "users", currentUser.uid, "orders"),
+      collection(db, "users", firebase.authUser, "orders"),
       (snapshot) => {
         let list = [];
         snapshot.docs.forEach(
@@ -48,11 +48,11 @@ const OrderList = () => {
         };
       }
     );
-  }, [currentUser.uid]);
+  }, [firebase.authUser]);
 
   const handleDelete = async (id) => {
     try {
-      await deleteDoc(doc(db, "users", currentUser.uid, "orders", id));
+      await deleteDoc(doc(db, "users", firebase.authUser, "orders", id));
     } catch (error) {
       console.log(error);
     }

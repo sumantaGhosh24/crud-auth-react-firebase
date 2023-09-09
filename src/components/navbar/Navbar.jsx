@@ -1,5 +1,5 @@
-import React, {useContext, useEffect, useState} from "react";
-import {Link} from "react-router-dom";
+import {useEffect, useState} from "react";
+import {Link, useNavigate} from "react-router-dom";
 import {
   Button,
   AppBar,
@@ -17,8 +17,8 @@ import {PlaylistAddCheck} from "@mui/icons-material";
 import MenuIcon from "@mui/icons-material/Menu";
 import {doc, onSnapshot} from "firebase/firestore";
 
-import {AuthContext} from "../../context/AuthContext";
-import {db} from "../../firebase";
+import {db} from "../../firebase/firebase";
+import {useFirebase} from "../../firebase/AuthContext";
 
 const pages = ["Home", "Customer", "Product", "Order", "Donate"];
 const linkTo = ["/", "/customers", "/products", "/orders", "/donate"];
@@ -28,16 +28,29 @@ function Navbar() {
   const [anchorElUser, setAnchorElUser] = useState(null);
   const [user, setUser] = useState({});
 
-  const {currentUser, dispatch} = useContext(AuthContext);
+  const navigate = useNavigate();
+  const firebase = useFirebase();
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(doc(db, "users", currentUser.uid), (doc) => {
-      setUser(doc.data());
-    });
+    const unsubscribe = onSnapshot(
+      doc(db, "users", firebase.authUser),
+      (doc) => {
+        setUser(doc.data());
+      }
+    );
     return () => {
       unsubscribe();
     };
-  }, [currentUser.uid]);
+  }, [firebase.authUser]);
+
+  const handleLogout = async () => {
+    try {
+      await firebase.handleLogout();
+      navigate("/login");
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
 
   const handleOpenNavMenu = (event) => {
     setAnchorElNav(event.currentTarget);
@@ -185,7 +198,7 @@ function Navbar() {
                   {user?.name}
                 </Typography>
               </MenuItem>
-              <MenuItem divider onClick={() => dispatch({type: "LOGOUT"})}>
+              <MenuItem divider onClick={handleLogout}>
                 <Typography textAlign="center">Logout</Typography>
               </MenuItem>
               <MenuItem onClick={handleCloseUserMenu}>

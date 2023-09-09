@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useContext} from "react";
+import {useState, useEffect} from "react";
 import {
   Box,
   Button,
@@ -22,28 +22,30 @@ import {
 } from "firebase/firestore";
 import {Paid} from "@mui/icons-material";
 import {v4 as uuidv4} from "uuid";
+import {useNavigate} from "react-router-dom";
 
-import {AuthContext} from "../../context/AuthContext";
-import {db} from "../../firebase";
-import Navbar from "../../components/navbar/Navbar";
-import {RAZORPAY_KEY, RAZORPAY_KEY_SECRET} from "../../config";
+import {db} from "../../firebase/firebase";
+import {Navbar} from "../../components";
+import {RAZORPAY_KEY, RAZORPAY_KEY_SECRET} from "../../firebase/config";
+import {useFirebase} from "../../firebase/AuthContext";
 
 const Donate = () => {
+  useEffect(() => {
+    document.title = "TODO - Donate";
+  }, []);
+
   const [rows, setRows] = useState([]);
   const [user, setUser] = useState([]);
   const [amount, setAmount] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
-  const {currentUser} = useContext(AuthContext);
-
-  useEffect(() => {
-    document.title = "TODO - Donate";
-  }, []);
+  const navigate = useNavigate();
+  const firebase = useFirebase();
 
   useEffect(() => {
     const unsubscribe = onSnapshot(
-      collection(db, "users", currentUser.uid, "donations"),
+      collection(db, "users", firebase.authUser, "donations"),
       (snapshot) => {
         let list = [];
         snapshot.docs.forEach(
@@ -60,16 +62,19 @@ const Donate = () => {
     return () => {
       unsubscribe();
     };
-  }, [currentUser.uid]);
+  }, [firebase.authUser]);
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(doc(db, "users", currentUser.uid), (doc) => {
-      setUser(doc.data());
-    });
+    const unsubscribe = onSnapshot(
+      doc(db, "users", firebase.authUser),
+      (doc) => {
+        setUser(doc.data());
+      }
+    );
     return () => {
       unsubscribe();
     };
-  }, [currentUser.uid]);
+  }, [firebase.authUser]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -87,7 +92,7 @@ const Donate = () => {
           const donationId = uuidv4();
           try {
             await setDoc(
-              doc(db, "users", currentUser.uid, "donations", donationId),
+              doc(db, "users", firebase.authUser, "donations", donationId),
               {
                 payment_id: response.razorpay_payment_id,
                 name: user.name,
@@ -123,6 +128,7 @@ const Donate = () => {
       });
 
       pay.open();
+      navigate("/");
     }
   };
 
@@ -160,7 +166,7 @@ const Donate = () => {
           <form onSubmit={handleSubmit} style={{width: "80%"}}>
             <Box sx={{marginBottom: 2}}>
               <TextField
-                type="text"
+                type="number"
                 label="Enter donation amount"
                 onChange={(e) => setAmount(e.target.value)}
                 sx={{width: "100%"}}

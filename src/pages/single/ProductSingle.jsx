@@ -1,4 +1,4 @@
-import {useContext, useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import {ArrowBack, Delete, Edit} from "@mui/icons-material";
 import {
   Box,
@@ -13,24 +13,24 @@ import {
 import {deleteDoc, doc, getDoc} from "firebase/firestore";
 import {Link, useNavigate, useParams} from "react-router-dom";
 
-import Navbar from "../../components/navbar/Navbar";
-import {AuthContext} from "../../context/AuthContext";
-import {db} from "../../firebase";
+import {Navbar} from "../../components";
+import {db} from "../../firebase/firebase";
+import {useFirebase} from "../../firebase/AuthContext";
 
 const ProductSingle = () => {
-  const [product, setProduct] = useState({});
-
-  const navigate = useNavigate();
-  const {productId} = useParams();
-  const {currentUser} = useContext(AuthContext);
-
   useEffect(() => {
     document.title = "TODO - Product";
   }, []);
 
+  const [product, setProduct] = useState({});
+
+  const navigate = useNavigate();
+  const {productId} = useParams();
+  const firebase = useFirebase();
+
   useEffect(() => {
     const getCustomer = async () => {
-      const docRef = doc(db, "users", currentUser.uid, "products", productId);
+      const docRef = doc(db, "users", firebase.authUser, "products", productId);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         setProduct({id: docSnap.id, ...docSnap.data()});
@@ -41,11 +41,12 @@ const ProductSingle = () => {
     return () => {
       getCustomer();
     };
-  }, [currentUser.uid, productId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [firebase.authUser, productId]);
 
   const handleDelete = async (id) => {
     try {
-      await deleteDoc(doc(db, "users", currentUser.uid, "products", id));
+      await deleteDoc(doc(db, "users", firebase.authUser, "products", id));
       navigate("/products");
     } catch (error) {
       console.log(error);
@@ -124,7 +125,10 @@ const ProductSingle = () => {
               color="success"
               sx={{marginLeft: 2, marginRight: 2}}
             >
-              <Link to={`/products/update/${product.id}`}>
+              <Link
+                to={`/products/update/${product.id}`}
+                style={{color: "white"}}
+              >
                 <Edit />
               </Link>
             </Button>

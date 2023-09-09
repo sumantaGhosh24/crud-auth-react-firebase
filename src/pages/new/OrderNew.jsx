@@ -1,4 +1,4 @@
-import {useContext, useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import {ArrowBack} from "@mui/icons-material";
 import {
   Box,
@@ -28,9 +28,9 @@ import {
 import {Link, useNavigate} from "react-router-dom";
 import {v4 as uuidv4} from "uuid";
 
-import {AuthContext} from "../../context/AuthContext";
-import {db} from "../../firebase";
-import Navbar from "../../components/navbar/Navbar";
+import {Navbar} from "../../components";
+import {useFirebase} from "../../firebase/AuthContext";
+import {db} from "../../firebase/firebase";
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -44,6 +44,11 @@ const MenuProps = {
 };
 
 const OrderNew = () => {
+  useEffect(() => {
+    document.title = "TODO - New Order";
+  }, []);
+
+  const [loading, setLoading] = useState(false);
   const [products, setProducts] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [user, setUser] = useState({});
@@ -51,16 +56,12 @@ const OrderNew = () => {
   const [selectCustomer, setSelectCustomer] = useState("");
   const [selectProduct, setSelectProduct] = useState([]);
 
-  const {currentUser} = useContext(AuthContext);
+  const firebase = useFirebase();
   const navigate = useNavigate();
 
   useEffect(() => {
-    document.title = "TODO - New Order";
-  }, []);
-
-  useEffect(() => {
     const unsubscribe = onSnapshot(
-      collection(db, "users", currentUser.uid, "products"),
+      collection(db, "users", firebase.authUser, "products"),
       (snapshot) => {
         let list = [];
         snapshot.docs.forEach(
@@ -77,11 +78,11 @@ const OrderNew = () => {
     return () => {
       unsubscribe();
     };
-  }, [currentUser.uid]);
+  }, [firebase.authUser]);
 
   useEffect(() => {
     const unsubscribe = onSnapshot(
-      collection(db, "users", currentUser.uid, "customers"),
+      collection(db, "users", firebase.authUser, "customers"),
       (snapshot) => {
         let list = [];
         snapshot.docs.forEach(
@@ -98,11 +99,11 @@ const OrderNew = () => {
     return () => {
       unsubscribe();
     };
-  }, [currentUser.uid]);
+  }, [firebase.authUser]);
 
   useEffect(() => {
     const getUser = async () => {
-      const docRef = doc(db, "users", currentUser.uid);
+      const docRef = doc(db, "users", firebase.authUser);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         setUser({id: docSnap.id, ...docSnap.data()});
@@ -111,7 +112,7 @@ const OrderNew = () => {
     return () => {
       getUser();
     };
-  }, [currentUser.uid]);
+  }, [firebase.authUser]);
 
   const handleChange = (event) => {
     const {
@@ -128,15 +129,18 @@ const OrderNew = () => {
     e.preventDefault();
     const orderId = uuidv4();
     try {
-      await setDoc(doc(db, "users", currentUser.uid, "orders", orderId), {
+      setLoading(true);
+      await setDoc(doc(db, "users", firebase.authUser, "orders", orderId), {
         user: user,
         customer: selectCustomer,
         products: selectProduct,
         timestamp: serverTimestamp(),
       });
+      setLoading(false);
       navigate("/orders");
     } catch (error) {
       setError(error.message);
+      setLoading(false);
     }
   };
 
@@ -225,9 +229,11 @@ const OrderNew = () => {
               variant="contained"
               color="primary"
               size="large"
-              disabled={!selectCustomer || selectProduct.length === 0}
+              disabled={
+                !selectCustomer || selectProduct.length === 0 || loading
+              }
             >
-              Add Order
+              {loading ? "Please Wait..." : "Add Order"}
             </Button>
             {error && (
               <Typography
@@ -272,7 +278,7 @@ const OrderNew = () => {
               <CardMedia
                 component="img"
                 height="140"
-                image={user.img}
+                image={user.imageUrl}
                 alt={user.name}
               />
               <CardContent>

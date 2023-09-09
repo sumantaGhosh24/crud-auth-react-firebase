@@ -1,7 +1,6 @@
-import {useContext, useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import {ArrowBack, DriveFolderUploadOutlined} from "@mui/icons-material";
 import {doc, serverTimestamp, setDoc} from "firebase/firestore";
-import {ref, uploadBytesResumable, getDownloadURL} from "firebase/storage";
 import {Link, useNavigate} from "react-router-dom";
 import {
   Avatar,
@@ -14,84 +13,69 @@ import {
 } from "@mui/material";
 import {v4 as uuidv4} from "uuid";
 
-import {AuthContext} from "../../context/AuthContext";
-import {db, storage} from "../../firebase";
-import Navbar from "../../components/navbar/Navbar";
+import {db} from "../../firebase/firebase";
+import {Navbar} from "../../components";
+import {useFirebase} from "../../firebase/AuthContext";
+import {uploadImage} from "../../firebase/storage";
 
 const CustomerNew = ({inputs}) => {
-  const [file, setFile] = useState("");
-  const [data, setData] = useState({});
-  const [error, setError] = useState("");
-  const [per, setPer] = useState(null);
-
-  const navigate = useNavigate();
-
-  const {currentUser} = useContext(AuthContext);
-
   useEffect(() => {
     document.title = "TODO - New Customer";
   }, []);
 
-  useEffect(() => {
-    const uploadFile = () => {
-      const name = new Date().getTime() + file.name;
-      const storageRef = ref(storage, name);
-      const uploadTask = uploadBytesResumable(storageRef, file);
-      uploadTask.on(
-        "state_changed",
-        (snapshot) => {
-          const progress =
-            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          console.log(`upload is ${progress}% done`);
-          setPer(progress);
-          switch (snapshot.state) {
-            case "paused":
-              console.log("upload is paused");
-              break;
-            case "running":
-              console.log("upload is running");
-              break;
-            default:
-              break;
-          }
-        },
-        (error) => {
-          setError(error.message);
-        },
-        () => {
-          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-            setData((prev) => ({...prev, img: downloadURL}));
-          });
-        }
-      );
-    };
-    file && uploadFile();
-  }, [file]);
+  const [loading, setLoading] = useState(false);
+  const [file, setFile] = useState("");
+  const [data, setData] = useState({
+    username: "",
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
+    country: "",
+  });
+  const [error, setError] = useState("");
+
+  const navigate = useNavigate();
+  const firebase = useFirebase();
 
   const handleInput = (e) => {
     const {id, value} = e.target;
     setData({...data, [id]: value});
   };
 
-  const isMatch =
-    !data.username ||
-    !data.name ||
-    !data.email ||
-    !data.phone ||
-    !data.address ||
-    !data.country;
-
   const handleAddCustomer = async (e) => {
     e.preventDefault();
     const customerId = uuidv4();
     try {
-      await setDoc(doc(db, "users", currentUser.uid, "customers", customerId), {
-        ...data,
-        timestamp: serverTimestamp(),
-      });
-      navigate("/customers");
+      setLoading(true);
+      if (
+        !data.username ||
+        !data.name ||
+        !data.email ||
+        !data.phone ||
+        !data.address ||
+        !data.country ||
+        !file.name
+      ) {
+        setLoading(false);
+        setError("Please fill all the fields.");
+      } else {
+        setError(null);
+        const img = await uploadImage(file, "customers");
+        await setDoc(
+          doc(db, "users", firebase.authUser, "customers", customerId),
+          {
+            ...data,
+            img,
+            timestamp: serverTimestamp(),
+          }
+        );
+        setLoading(false);
+        navigate("/customers");
+      }
     } catch (error) {
       setError(error.message);
+      setLoading(false);
     }
   };
 
@@ -111,7 +95,6 @@ const CustomerNew = ({inputs}) => {
       <Container
         maxWidth="xl"
         sx={{
-          height: "100%",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -180,12 +163,12 @@ const CustomerNew = ({inputs}) => {
             ))}
             <Button
               type="submit"
-              disabled={per < 100 || isMatch}
+              disabled={loading}
               variant="contained"
               color="primary"
               size="large"
             >
-              Add Customer
+              {loading ? "Please Wait..." : "Add Customer"}
             </Button>
             {error && (
               <Typography

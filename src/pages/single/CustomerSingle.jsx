@@ -1,4 +1,4 @@
-import {useContext, useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import {Link, useNavigate, useParams} from "react-router-dom";
 import {deleteDoc, doc, getDoc} from "firebase/firestore";
 import {
@@ -13,25 +13,30 @@ import {
 } from "@mui/material";
 import {ArrowBack, Delete, Edit} from "@mui/icons-material";
 
-import {AuthContext} from "../../context/AuthContext";
-import {db} from "../../firebase";
-import Navbar from "../../components/navbar/Navbar";
+import {db} from "../../firebase/firebase";
+import {Navbar} from "../../components";
+import {useFirebase} from "../../firebase/AuthContext";
 
 const CustomerSingle = () => {
-  const [customer, setCustomer] = useState({});
-
-  const navigate = useNavigate();
-  const {customerId} = useParams();
-
-  const {currentUser} = useContext(AuthContext);
-
   useEffect(() => {
     document.title = "TODO - Customer";
   }, []);
 
+  const [customer, setCustomer] = useState({});
+
+  const navigate = useNavigate();
+  const {customerId} = useParams();
+  const firebase = useFirebase();
+
   useEffect(() => {
     const getCustomer = async () => {
-      const docRef = doc(db, "users", currentUser.uid, "customers", customerId);
+      const docRef = doc(
+        db,
+        "users",
+        firebase.authUser,
+        "customers",
+        customerId
+      );
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         setCustomer({id: docSnap.id, ...docSnap.data()});
@@ -42,11 +47,12 @@ const CustomerSingle = () => {
     return () => {
       getCustomer();
     };
-  }, [currentUser.uid, customerId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [firebase.authUser, customerId]);
 
   const handleDelete = async (id) => {
     try {
-      await deleteDoc(doc(db, "users", currentUser.uid, "customers", id));
+      await deleteDoc(doc(db, "users", firebase.authUser, "customers", id));
       navigate("/customers");
     } catch (error) {
       console.log(error);
@@ -132,7 +138,10 @@ const CustomerSingle = () => {
               color="success"
               sx={{marginLeft: 2, marginRight: 2}}
             >
-              <Link to={`/customers/update/${customer.id}`}>
+              <Link
+                to={`/customers/update/${customer.id}`}
+                style={{color: "white"}}
+              >
                 <Edit />
               </Link>
             </Button>

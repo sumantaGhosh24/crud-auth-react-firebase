@@ -1,4 +1,4 @@
-import {useContext, useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import {ArrowBack, DriveFolderUploadOutlined} from "@mui/icons-material";
 import {
   Avatar,
@@ -10,86 +10,70 @@ import {
   Typography,
 } from "@mui/material";
 import {doc, serverTimestamp, setDoc} from "firebase/firestore";
-import {getDownloadURL, ref, uploadBytesResumable} from "firebase/storage";
 import {Link, useNavigate} from "react-router-dom";
 import {v4 as uuidv4} from "uuid";
 
-import {AuthContext} from "../../context/AuthContext";
-import {db, storage} from "../../firebase";
-import Navbar from "../../components/navbar/Navbar";
+import {db} from "../../firebase/firebase";
+import {Navbar} from "../../components";
+import {useFirebase} from "../../firebase/AuthContext";
+import {uploadImage} from "../../firebase/storage";
 
 const ProductNew = ({inputs}) => {
-  const [file, setFile] = useState("");
-  const [data, setData] = useState({});
-  const [error, setError] = useState("");
-  const [per, setPer] = useState(null);
-
-  const {currentUser} = useContext(AuthContext);
-  const navigate = useNavigate();
-
   useEffect(() => {
     document.title = "TODO - New Product";
   }, []);
 
-  useEffect(() => {
-    const uploadFile = () => {
-      const name = new Date().getTime() + file.name;
-      const storageRef = ref(storage, name);
-      const uploadTask = uploadBytesResumable(storageRef, file);
-      uploadTask.on(
-        "state_changed",
-        (snapshot) => {
-          const progress =
-            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          console.log(`upload is ${progress}% done`);
-          setPer(progress);
-          switch (snapshot.state) {
-            case "paused":
-              console.log("upload is paused");
-              break;
-            case "running":
-              console.log("upload is running");
-              break;
-            default:
-              break;
-          }
-        },
-        (error) => {
-          setError(error.message);
-        },
-        () => {
-          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-            setData((prev) => ({...prev, img: downloadURL}));
-          });
-        }
-      );
-    };
-    file && uploadFile();
-  }, [file]);
+  const [loading, setLoading] = useState(false);
+  const [file, setFile] = useState("");
+  const [data, setData] = useState({
+    title: "",
+    description: "",
+    category: "",
+    price: "",
+    stock: "",
+  });
+  const [error, setError] = useState("");
+
+  const navigate = useNavigate();
+  const firebase = useFirebase();
 
   const handleInput = (e) => {
     const {id, value} = e.target;
     setData({...data, [id]: value});
   };
 
-  const isMatch =
-    !data.title ||
-    !data.description ||
-    !data.category ||
-    !data.price ||
-    !data.stock;
-
   const handleAddProduct = async (e) => {
     e.preventDefault();
     const productId = uuidv4();
     try {
-      await setDoc(doc(db, "users", currentUser.uid, "products", productId), {
-        ...data,
-        timestamp: serverTimestamp(),
-      });
-      navigate("/products");
+      setLoading(true);
+      if (
+        !data.title ||
+        !data.description ||
+        !data.category ||
+        !data.price ||
+        !data.stock ||
+        !file.name
+      ) {
+        setLoading(false);
+        setError("Please fill all the fields.");
+      } else {
+        setError(null);
+        const img = await uploadImage(file, "products");
+        await setDoc(
+          doc(db, "users", firebase.authUser, "products", productId),
+          {
+            ...data,
+            img,
+            timestamp: serverTimestamp(),
+          }
+        );
+        setLoading(false);
+        navigate("/products");
+      }
     } catch (error) {
       setError(error.message);
+      setLoading(false);
     }
   };
 
@@ -178,12 +162,12 @@ const ProductNew = ({inputs}) => {
             ))}
             <Button
               type="submit"
-              disabled={per < 100 || isMatch}
+              disabled={loading}
               variant="contained"
               color="primary"
               size="large"
             >
-              Add Product
+              {loading ? "Please Wait..." : "Add Product"}
             </Button>
             {error && (
               <Typography

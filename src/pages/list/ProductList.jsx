@@ -1,4 +1,4 @@
-import {useContext, useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import {collection, deleteDoc, doc, onSnapshot} from "firebase/firestore";
 import {
   Avatar,
@@ -16,22 +16,22 @@ import {
 import {Add, Delete, Edit, Visibility} from "@mui/icons-material";
 import {Link} from "react-router-dom";
 
-import {AuthContext} from "../../context/AuthContext";
-import {db} from "../../firebase";
-import Navbar from "../../components/navbar/Navbar";
+import {db} from "../../firebase/firebase";
+import {Navbar} from "../../components";
+import {useFirebase} from "../../firebase/AuthContext";
 
 const ProductList = () => {
-  const [rows, setRows] = useState([]);
-
-  const {currentUser} = useContext(AuthContext);
-
   useEffect(() => {
     document.title = "TODO - Product List";
   }, []);
 
+  const [rows, setRows] = useState([]);
+
+  const firebase = useFirebase();
+
   useEffect(() => {
     const unsubscribe = onSnapshot(
-      collection(db, "users", currentUser.uid, "products"),
+      collection(db, "users", firebase.authUser, "products"),
       (snapshot) => {
         let list = [];
         snapshot.docs.forEach(
@@ -48,11 +48,11 @@ const ProductList = () => {
         };
       }
     );
-  }, [currentUser.uid]);
+  }, [firebase.authUser]);
 
   const handleDelete = async (id) => {
     try {
-      await deleteDoc(doc(db, "users", currentUser.uid, "products", id));
+      await deleteDoc(doc(db, "users", firebase.authUser, "products", id));
     } catch (error) {
       console.log(error);
     }
@@ -114,7 +114,10 @@ const ProductList = () => {
                     </TableCell>
                     <TableCell align="right">
                       <Button variant="contained" color="secondary">
-                        <Link to={`/products/${row.id}`}>
+                        <Link
+                          to={`/products/${row.id}`}
+                          style={{color: "white"}}
+                        >
                           <Visibility />
                         </Link>
                       </Button>
@@ -123,7 +126,10 @@ const ProductList = () => {
                         color="success"
                         sx={{marginLeft: 2, marginRight: 2}}
                       >
-                        <Link to={`/products/update/${row.id}`}>
+                        <Link
+                          to={`/products/update/${row.id}`}
+                          style={{color: "white"}}
+                        >
                           <Edit />
                         </Link>
                       </Button>

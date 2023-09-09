@@ -1,37 +1,39 @@
-import {useContext, useEffect, useState} from "react";
-import {signInWithEmailAndPassword} from "firebase/auth";
+import {useEffect, useState} from "react";
 import {Link, useNavigate} from "react-router-dom";
 import {Box, Button, Container, TextField, Typography} from "@mui/material";
 
-import {auth} from "../../firebase";
-import {AuthContext} from "../../context/AuthContext";
+import {useFirebase} from "../../firebase/AuthContext";
 
 const Login = () => {
-  const [error, setError] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
-  const isEmpty = !email || !password;
-
-  const navigate = useNavigate();
-
-  const {dispatch} = useContext(AuthContext);
-
   useEffect(() => {
     document.title = "TODO - Login";
   }, []);
 
-  const handleLogin = (e) => {
+  const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+
+  const navigate = useNavigate();
+  const firebase = useFirebase();
+
+  const handleLogin = async (e) => {
     e.preventDefault();
-    signInWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-        const user = userCredential.user;
-        dispatch({type: "LOGIN", payload: user});
+    try {
+      setLoading(true);
+      if (!email || !password) {
+        setLoading(false);
+        setError("Please fill all the fields.");
+      } else {
+        setError(null);
+        await firebase.signIn(email, password);
+        setLoading(false);
         navigate("/");
-      })
-      .catch((error) => {
-        setError(error.message);
-      });
+      }
+    } catch (error) {
+      setError(error.message);
+      setLoading(false);
+    }
   };
 
   return (
@@ -81,12 +83,12 @@ const Login = () => {
           />
           <Button
             type="submit"
-            disabled={isEmpty}
+            disabled={loading}
             variant="contained"
             color="primary"
             size="large"
           >
-            Login
+            {loading ? "Please Wait..." : "Login"}
           </Button>
           {error && (
             <Typography

@@ -31,7 +31,9 @@ export default function PreviewCard({heading, subHeading, value, linkTo}) {
       </CardActionArea>
       <CardActions>
         <Button size="small" color="primary">
-          <Link to={linkTo}>read more</Link>
+          <Link to={linkTo} style={{textDecoration: "none"}}>
+            read more
+          </Link>
         </Button>
       </CardActions>
     </Card>

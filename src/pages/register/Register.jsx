@@ -1,8 +1,6 @@
 import {useEffect, useState} from "react";
 import {DriveFolderUploadOutlined} from "@mui/icons-material";
 import {doc, serverTimestamp, setDoc} from "firebase/firestore";
-import {createUserWithEmailAndPassword} from "firebase/auth";
-import {ref, uploadBytesResumable, getDownloadURL} from "firebase/storage";
 import {Link, useNavigate} from "react-router-dom";
 import {
   Avatar,
@@ -14,66 +12,31 @@ import {
   Typography,
 } from "@mui/material";
 
-import {auth, db, storage} from "../../firebase";
-import {userInputs as inputs} from "../../formSource";
+import {db} from "../../firebase/firebase";
+import {useFirebase} from "../../firebase/AuthContext";
+import {uploadImage} from "../../firebase/storage";
+import {userInputs as inputs} from "../../data/formSource";
 
 const Register = () => {
-  const [file, setFile] = useState("");
-  const [data, setData] = useState({});
-  const [error, setError] = useState("");
-  const [per, setPer] = useState(null);
-
-  const navigate = useNavigate();
-
-  const isEmpty =
-    !data.username ||
-    !data.name ||
-    !data.email ||
-    !data.phone ||
-    !data.password ||
-    !data.address ||
-    !data.country;
-
   useEffect(() => {
     document.title = "TODO - Register";
   }, []);
 
-  useEffect(() => {
-    const uploadFile = () => {
-      const name = new Date().getTime() + file.name;
-      console.log("file name", name);
-      const storageRef = ref(storage, name);
-      const uploadTask = uploadBytesResumable(storageRef, file);
-      uploadTask.on(
-        "state_changed",
-        (snapshot) => {
-          const progress =
-            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          console.log(`upload is ${progress}% done`);
-          setPer(progress);
-          switch (snapshot.state) {
-            case "paused":
-              console.log("upload is paused");
-              break;
-            case "running":
-              console.log("upload is running");
-              break;
-            default:
-              break;
-          }
-        },
-        (error) => {
-          setError(error.message);
-        },
-        () => {
-          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-            setData((prev) => ({...prev, img: downloadURL}));
-          });
-        }
-      );
-    };
-    file && uploadFile();
-  }, [file]);
+  const [loading, setLoading] = useState(false);
+  const [file, setFile] = useState("");
+  const [data, setData] = useState({
+    username: "",
+    name: "",
+    email: "",
+    phone: "",
+    password: "",
+    address: "",
+    country: "",
+  });
+  const [error, setError] = useState("");
+
+  const navigate = useNavigate();
+  const firebase = useFirebase();
 
   const handleInput = (e) => {
     const {id, value} = e.target;
@@ -83,20 +46,35 @@ const Register = () => {
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      const res = await createUserWithEmailAndPassword(
-        auth,
-        data.email,
-        data.password
-      );
-      const obj = {...data};
-      delete obj.password;
-      await setDoc(doc(db, "users", res.user.uid), {
-        ...obj,
-        timestamp: serverTimestamp(),
-      });
-      navigate("/login");
+      setLoading(true);
+      if (
+        !data.username ||
+        !data.name ||
+        !data.email ||
+        !data.phone ||
+        !data.password ||
+        !data.address ||
+        !data.country ||
+        !file.name
+      ) {
+        setLoading(false);
+        setError("Please fill all the fields.");
+      } else {
+        setError(null);
+        const imageUrl = await uploadImage(file, "users");
+        const res = await firebase.signUp(data.email, data.password);
+        const obj = {...data, imageUrl};
+        delete obj.password;
+        await setDoc(doc(db, "users", res.user.uid), {
+          ...obj,
+          timestamp: serverTimestamp(),
+        });
+        setLoading(false);
+        navigate("/");
+      }
     } catch (error) {
       setError(error.message);
+      setLoading(false);
     }
   };
 
@@ -171,12 +149,12 @@ const Register = () => {
           ))}
           <Button
             type="submit"
-            disabled={per < 100 || isEmpty}
+            disabled={loading}
             variant="contained"
             color="primary"
             size="large"
           >
-            Register
+            {loading ? "Please Wait..." : "Register"}
           </Button>
           {error && (
             <Typography

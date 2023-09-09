@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import {
   Avatar,
   Button,
@@ -16,22 +16,22 @@ import {Add, Delete, Edit, Visibility} from "@mui/icons-material";
 import {Link} from "react-router-dom";
 import {collection, deleteDoc, doc, onSnapshot} from "firebase/firestore";
 
-import Navbar from "../../components/navbar/Navbar";
-import {AuthContext} from "../../context/AuthContext";
-import {db} from "../../firebase";
+import {Navbar} from "../../components";
+import {db} from "../../firebase/firebase";
+import {useFirebase} from "../../firebase/AuthContext";
 
 export default function CustomerList() {
-  const [rows, setRows] = useState([]);
-
-  const {currentUser} = useContext(AuthContext);
-
   useEffect(() => {
     document.title = "TODO | Customer List";
   }, []);
 
+  const [rows, setRows] = useState([]);
+
+  const firebase = useFirebase();
+
   useEffect(() => {
     const unsubscribe = onSnapshot(
-      collection(db, "users", currentUser.uid, "customers"),
+      collection(db, "users", firebase.authUser, "customers"),
       (snapshot) => {
         let list = [];
         snapshot.docs.forEach((doc) => {
@@ -46,11 +46,11 @@ export default function CustomerList() {
     return () => {
       unsubscribe();
     };
-  }, [currentUser.uid]);
+  }, [firebase.authUser]);
 
   const handleDelete = async (id) => {
     try {
-      await deleteDoc(doc(db, "users", currentUser.uid, "customers", id));
+      await deleteDoc(doc(db, "users", firebase.authUser, "customers", id));
     } catch (error) {
       console.log(error);
     }
@@ -114,7 +114,10 @@ export default function CustomerList() {
                     </TableCell>
                     <TableCell align="right">
                       <Button variant="contained" color="secondary">
-                        <Link to={`/customers/${row.id}`}>
+                        <Link
+                          to={`/customers/${row.id}`}
+                          style={{color: "white"}}
+                        >
                           <Visibility />
                         </Link>
                       </Button>
@@ -123,7 +126,10 @@ export default function CustomerList() {
                         color="success"
                         sx={{marginLeft: 2, marginRight: 2}}
                       >
-                        <Link to={`/customers/update/${row.id}`}>
+                        <Link
+                          to={`/customers/update/${row.id}`}
+                          style={{color: "white"}}
+                        >
                           <Edit />
                         </Link>
                       </Button>

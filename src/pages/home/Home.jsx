@@ -1,26 +1,25 @@
-import {useContext, useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import {Box, Container} from "@mui/system";
 import {collection, onSnapshot} from "firebase/firestore";
 
-import Navbar from "../../components/navbar/Navbar";
-import PreviewCard from "../../components/card/Card";
-import {AuthContext} from "../../context/AuthContext";
-import {db} from "../../firebase";
+import {Card, Navbar} from "../../components";
+import {db} from "../../firebase/firebase";
+import {useFirebase} from "../../firebase/AuthContext";
 
 const Home = () => {
-  const [customer, setCustomer] = useState(0);
-  const [product, setProduct] = useState(0);
-  const [order, setOrder] = useState(0);
-
-  const {currentUser} = useContext(AuthContext);
-
   useEffect(() => {
     document.title = "TODO - Home";
   }, []);
 
+  const [customer, setCustomer] = useState(0);
+  const [product, setProduct] = useState(0);
+  const [order, setOrder] = useState(0);
+
+  const firebase = useFirebase();
+
   useEffect(() => {
     const unsubscribe = onSnapshot(
-      collection(db, "users", currentUser.uid, "customers"),
+      collection(db, "users", firebase.authUser, "customers"),
       (snapshot) => {
         let list = [];
         snapshot.docs.forEach(
@@ -37,11 +36,11 @@ const Home = () => {
     return () => {
       unsubscribe();
     };
-  }, [currentUser.uid]);
+  }, [firebase.authUser]);
 
   useEffect(() => {
     const unsubscribe = onSnapshot(
-      collection(db, "users", currentUser.uid, "products"),
+      collection(db, "users", firebase.authUser, "products"),
       (snapshot) => {
         let list = [];
         snapshot.docs.forEach(
@@ -58,11 +57,11 @@ const Home = () => {
     return () => {
       unsubscribe();
     };
-  }, [currentUser.uid]);
+  }, [firebase.authUser]);
 
   useEffect(() => {
     const unsubscribe = onSnapshot(
-      collection(db, "users", currentUser.uid, "orders"),
+      collection(db, "users", firebase.authUser, "orders"),
       (snapshot) => {
         let list = [];
         snapshot.docs.forEach(
@@ -79,7 +78,7 @@ const Home = () => {
     return () => {
       unsubscribe();
     };
-  }, [currentUser.uid]);
+  }, [firebase.authUser]);
 
   return (
     <div className="home">
@@ -94,19 +93,19 @@ const Home = () => {
             marginBottom: "20px",
           }}
         >
-          <PreviewCard
+          <Card
             heading="Total Customers"
             subHeading="total number of customers"
             value={customer}
             linkTo="/customers"
           />
-          <PreviewCard
+          <Card
             heading="Total Products"
             subHeading="total number of products available"
             value={product}
             linkTo="/products"
           />
-          <PreviewCard
+          <Card
             heading="Total Orders"
             subHeading="total number of orders available"
             value={order}

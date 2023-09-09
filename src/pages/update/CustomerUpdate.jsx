@@ -1,4 +1,4 @@
-import {useContext, useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import {
   Avatar,
   Box,
@@ -11,25 +11,31 @@ import {ArrowBack} from "@mui/icons-material";
 import {Link, useNavigate, useParams} from "react-router-dom";
 import {doc, getDoc, updateDoc} from "firebase/firestore";
 
-import Navbar from "../../components/navbar/Navbar";
-import {db} from "../../firebase";
-import {AuthContext} from "../../context/AuthContext";
+import {Navbar} from "../../components";
+import {db} from "../../firebase/firebase";
+import {useFirebase} from "../../firebase/AuthContext";
 
 const CustomerUpdate = () => {
-  const [customer, setCustomer] = useState({});
-  const [error, setError] = useState("");
-
-  const navigate = useNavigate();
-  const {currentUser} = useContext(AuthContext);
-  const {customerId} = useParams();
-
   useEffect(() => {
     document.title = "TODO - Update Customer";
   }, []);
 
+  const [customer, setCustomer] = useState({});
+  const [error, setError] = useState("");
+
+  const navigate = useNavigate();
+  const {customerId} = useParams();
+  const firebase = useFirebase();
+
   useEffect(() => {
     const unsubscribe = async () => {
-      const docRef = doc(db, "users", currentUser.uid, "customers", customerId);
+      const docRef = doc(
+        db,
+        "users",
+        firebase.authUser,
+        "customers",
+        customerId
+      );
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         setCustomer({id: docSnap.id, ...docSnap.data()});
@@ -40,7 +46,8 @@ const CustomerUpdate = () => {
     return () => {
       unsubscribe();
     };
-  }, [currentUser.uid, customerId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [firebase.authUser, customerId]);
 
   const handleInput = (e) => {
     const {id, value} = e.target;
@@ -51,7 +58,7 @@ const CustomerUpdate = () => {
     e.preventDefault();
     try {
       await updateDoc(
-        doc(db, "users", currentUser.uid, "customers", customerId),
+        doc(db, "users", firebase.authUser, "customers", customerId),
         {...customer},
         {merge: true}
       );
